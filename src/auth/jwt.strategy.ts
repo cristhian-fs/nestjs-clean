@@ -5,16 +5,16 @@ import { Env } from 'src/env';
 import z from 'zod';
 import { Injectable } from '@nestjs/common';
 
-const tokenSchema = z.object({
+const tokenPayload = z.object({
   sub: z.uuid(),
 });
 
-type TokenSchema = z.infer<typeof tokenSchema>;
+export type UserPayload = z.infer<typeof tokenPayload>;
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  async validate(payload: TokenSchema) {
-    return tokenSchema.parse(payload);
+  async validate(payload: UserPayload) {
+    return tokenPayload.parse(payload);
   }
   constructor(config: ConfigService<Env, true>) {
     const publicKey = config.get('JWT_PUBLIC_KEY', { infer: true });
