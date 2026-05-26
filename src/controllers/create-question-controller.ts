@@ -8,7 +8,7 @@ const authenticateBodySchema = z.object({
   password: z.string(),
 });
 
-@Controller('/sessions')
+@Controller('/api/questions')
 @UseGuards(JwtAuthGuard)
 export class CreateQuestionController {
   constructor() {}
