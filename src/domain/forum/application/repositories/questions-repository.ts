@@ -1,5 +1,5 @@
-import type { PaginationProps } from '@/core/repositories/pagination-props.js';
-import type { Question } from '../../enterprise/entities/question.js';
+import type { PaginationProps } from '@/core/repositories/pagination-props';
+import type { Question } from '../../enterprise/entities/question';
 
 export abstract class QuestionsRepository {
   abstract findBySlug(slug: string): Promise<Question | null>;

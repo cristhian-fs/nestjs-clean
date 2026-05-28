@@ -1,8 +1,8 @@
-import type { UniqueEntityID } from '@/core/entities/unique-entity-id.js';
-import { Slug } from './value-objects/slug.js';
-import type { Optional } from '@/@types/optional.js';
-import { AggregateRoot } from '@/core/entities/aggregate-root.js';
-import { QuestionAttachmentList } from './question-attachment-list.js';
+import type { UniqueEntityID } from '@/core/entities/unique-entity-id';
+import { Slug } from './value-objects/slug';
+import type { Optional } from '@/@types/optional';
+import { AggregateRoot } from '@/core/entities/aggregate-root';
+import { QuestionAttachmentList } from './question-attachment-list';
 
 export interface QuestionProps {
   title: string;
