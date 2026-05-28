@@ -8,7 +8,7 @@ export interface QuestionProps {
   title: string;
   content: string;
   authorId: UniqueEntityID;
-  bestAnswerId?: UniqueEntityID;
+  bestAnswerId?: UniqueEntityID | null;
   slug: Slug;
   createdAt: Date;
   updatedAt?: Date | null;
@@ -70,7 +70,7 @@ export class Question extends AggregateRoot<QuestionProps> {
     this.touch();
   }
 
-  set bestAnswerId(bestAnswerId: UniqueEntityID | undefined) {
+  set bestAnswerId(bestAnswerId: UniqueEntityID | undefined | null) {
     this.props.bestAnswerId = bestAnswerId;
     this.touch();
   }
