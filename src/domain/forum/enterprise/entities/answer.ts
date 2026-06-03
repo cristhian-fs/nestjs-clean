@@ -1,7 +1,7 @@
-import type { UniqueEntityID } from "@/core/entities/unique-entity-id.js";
-import { Entity } from "@/core/entities/entity.js";
-import type { Optional } from "@/@types/optional.js";
-import { AnswerAttachmentList } from "./answer-attachment-list";
+import type { UniqueEntityID } from '@/core/entities/unique-entity-id.js';
+import { Entity } from '@/core/entities/entity.js';
+import type { Optional } from '@/@types/optional.js';
+import { AnswerAttachmentList } from './answer-attachment-list';
 
 export interface AnswerProps {
   authorId: UniqueEntityID;
@@ -9,7 +9,7 @@ export interface AnswerProps {
   content: string;
   attachments: AnswerAttachmentList;
   createdAt: Date;
-  updatedAt?: Date;
+  updatedAt?: Date | null;
 }
 
 export class Answer extends Entity<AnswerProps> {
@@ -30,7 +30,7 @@ export class Answer extends Entity<AnswerProps> {
   }
 
   get excerpt() {
-    return this.props.content.substring(0, 120).trimEnd().concat("...");
+    return this.props.content.substring(0, 120).trimEnd().concat('...');
   }
 
   get attachments() {
@@ -51,7 +51,7 @@ export class Answer extends Entity<AnswerProps> {
   }
 
   static create(
-    props: Optional<AnswerProps, "createdAt" | "attachments">,
+    props: Optional<AnswerProps, 'createdAt' | 'attachments'>,
     id?: UniqueEntityID,
   ) {
     const answer = new Answer(
