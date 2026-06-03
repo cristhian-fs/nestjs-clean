@@ -2,22 +2,51 @@ import { PaginationProps } from '@/core/repositories/pagination-props';
 import { QuestionCommentsRepository } from '@/domain/forum/application/repositories/question-comments-repository';
 import { QuestionComment } from '@/domain/forum/enterprise/entities/question-comment';
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { PrismaQuestionCommentMapper } from '../prisma/mappers/prisma-question-comment-mapper';
 
 @Injectable()
 export class PrismaQuestionCommentsRepository implements QuestionCommentsRepository {
-  findById(id: string): Promise<QuestionComment | null> {
-    throw new Error('Method not implemented.');
+  constructor(private prisma: PrismaService) {}
+
+  async findById(id: string): Promise<QuestionComment | null> {
+    const comment = await this.prisma.comment.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (!comment) return null;
+
+    return PrismaQuestionCommentMapper.toDomain(comment);
   }
-  create(question: QuestionComment): Promise<void> {
-    throw new Error('Method not implemented.');
+  async create(question: QuestionComment): Promise<void> {
+    const data = PrismaQuestionCommentMapper.toPrisma(question);
+
+    await this.prisma.comment.create({
+      data,
+    });
   }
-  delete(questionComment: QuestionComment): Promise<void> {
-    throw new Error('Method not implemented.');
+  async delete(questionComment: QuestionComment): Promise<void> {
+    await this.prisma.comment.delete({
+      where: {
+        id: questionComment.id.toString(),
+      },
+    });
   }
-  findManyByQuestionId(
+  async findManyByQuestionId(
     questionId: string,
-    props: PaginationProps,
+    { page }: PaginationProps,
   ): Promise<QuestionComment[]> {
-    throw new Error('Method not implemented.');
+    const data = await this.prisma.comment.findMany({
+      where: {
+        questionId,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+      skip: (page - 1) * 20,
+    });
+
+    return data.map(PrismaQuestionCommentMapper.toDomain);
   }
 }
