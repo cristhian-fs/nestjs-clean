@@ -1,44 +1,45 @@
+import { Slug } from '@/domain/forum/enterprise/entities/value-objects/slug';
 import { AppModule } from '@/infra/app.module';
 import { PrismaService } from '@/infra/database/prisma/prisma.service';
 import { INestApplication } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
+import { QuestionFactory } from 'test/factories/make-question';
+import { StudentFactory } from 'test/factories/make-student';
 
 describe('Create question (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let studentFactory: StudentFactory;
+  let questionFactory: QuestionFactory;
   let jwt: JwtService;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
+      providers: [StudentFactory, QuestionFactory],
     }).compile();
 
     app = moduleRef.createNestApplication();
 
-    prisma = moduleRef.get(PrismaService);
+    studentFactory = moduleRef.get(StudentFactory);
+    questionFactory = moduleRef.get(QuestionFactory);
     jwt = moduleRef.get(JwtService);
     await app.init();
   });
   test('[GET] /api/questions', async () => {
-    const user = {
-      name: 'John Doe',
-      email: 'johndoe@example.com',
-      password: '123456',
-    };
-
-    const userDb = await prisma.user.create({ data: user });
+    const userDb = await studentFactory.makePrismaStudent();
 
     const accessToken = jwt.sign({ sub: userDb.id });
 
-    await prisma.question.createMany({
-      data: Array.from({ length: 2 }).map((_, i) => ({
+    Array.from({ length: 2 }).map(async (_, i) => {
+      await questionFactory.makePrismaQuestion({
         title: `Question ${i + 1}`,
-        slug: `question-${i + 1}`,
+        slug: Slug.create(`question-${i + 1}`),
         content: `question ${i + 1} content`,
         authorId: userDb.id,
-      })),
+      });
     });
 
     const response = await request(app.getHttpServer())
