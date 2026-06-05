@@ -1,7 +1,8 @@
-import { type Either, right, left } from "@/core/either";
-import type { QuestionsRepository } from "../repositories/questions-repository";
-import { NotAllowedError } from "./errors/not-allowed-error";
-import { ResourceNotFoundError } from "./errors/resource-not-found-error";
+import { type Either, right, left } from '@/core/either';
+import { QuestionsRepository } from '../repositories/questions-repository';
+import { NotAllowedError } from './errors/not-allowed-error';
+import { ResourceNotFoundError } from './errors/resource-not-found-error';
+import { Injectable } from '@nestjs/common';
 
 interface DeleteQuestionUseCaseRequest {
   authorId: string;
@@ -10,11 +11,12 @@ interface DeleteQuestionUseCaseRequest {
 
 type DeleteQuestionUseCaseResponse = Either<
   NotAllowedError | ResourceNotFoundError,
-  {}
+  unknown
 >;
 
+@Injectable()
 export class DeleteQuestionUseCase {
-  constructor(private questionsRepository: QuestionsRepository) { }
+  constructor(private questionsRepository: QuestionsRepository) {}
 
   async execute({
     authorId,
