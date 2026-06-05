@@ -10,24 +10,24 @@ import { StudentFactory } from 'test/factories/make-student';
 describe('Create question (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
-  let studentFactory: StudentFactory;
+	let studentFactory: StudentFactory;
   let jwt: JwtService;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule, DatabaseModule],
-      providers: [StudentFactory],
+			providers: [StudentFactory],
     }).compile();
 
     app = moduleRef.createNestApplication();
 
-    studentFactory = moduleRef.get(StudentFactory);
+		studentFactory = moduleRef.get(StudentFactory);
     prisma = moduleRef.get(PrismaService);
     jwt = moduleRef.get(JwtService);
     await app.init();
   });
   test('[POST] /api/questions', async () => {
-    const user = await studentFactory.makePrismaStudent();
+		const user = await studentFactory.makePrismaStudent()
 
     const accessToken = jwt.sign({ sub: user.id.toString() });
 

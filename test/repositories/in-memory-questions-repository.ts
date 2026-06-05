@@ -1,7 +1,7 @@
 import { PaginationProps } from "@/core/repositories/pagination-props";
 import { QuestionAttachmentsRepository } from "@/domain/forum/application/repositories/question-attachments-repository";
-import type { QuestionsRepository } from "@/domain/forum/application/repositories/questions-repository.js";
-import type { Question } from "@/domain/forum/enterprise/entities/question.js";
+import { QuestionsRepository } from "@/domain/forum/application/repositories/questions-repository.js";
+import { Question } from "@/domain/forum/enterprise/entities/question.js";
 
 export class InMemoryQuestionsRepository implements QuestionsRepository {
   public items: Question[] = [];
