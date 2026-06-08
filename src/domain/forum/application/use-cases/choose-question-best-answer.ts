@@ -1,10 +1,11 @@
-import { UniqueEntityID } from "@/core/entities/unique-entity-id";
-import type { AnswersRepository } from "@/domain/forum/application/repositories/answers-repository";
-import type { Question } from "../../enterprise/entities/question";
-import type { QuestionsRepository } from "../repositories/questions-repository";
-import { type Either, right, left } from "@/core/either";
-import { ResourceNotFoundError } from "./errors/resource-not-found-error";
-import { NotAllowedError } from "./errors/not-allowed-error";
+import { UniqueEntityID } from '@/core/entities/unique-entity-id';
+import { AnswersRepository } from '@/domain/forum/application/repositories/answers-repository';
+import type { Question } from '../../enterprise/entities/question';
+import { QuestionsRepository } from '../repositories/questions-repository';
+import { type Either, right, left } from '@/core/either';
+import { ResourceNotFoundError } from './errors/resource-not-found-error';
+import { NotAllowedError } from './errors/not-allowed-error';
+import { Injectable } from '@nestjs/common';
 
 interface ChooseQuestionBestAnswerUseCaseRequest {
   authorId: string;
@@ -18,11 +19,12 @@ type ChooseQuestionBestAnswerUseCaseResponse = Either<
   }
 >;
 
+@Injectable()
 export class ChooseQuestionBestAnswerUseCase {
   constructor(
     private questionsRepository: QuestionsRepository,
     private answersRepository: AnswersRepository,
-  ) { }
+  ) {}
 
   async execute({
     answerId,
@@ -43,7 +45,9 @@ export class ChooseQuestionBestAnswerUseCase {
     if (authorId !== question.authorId.toString())
       return left(new NotAllowedError());
 
-    question.bestAnswerId = new UniqueEntityID(answerId);
+    question.bestAnswerId = answer.id;
+
+    await this.questionsRepository.save(question);
 
     return right({ question });
   }

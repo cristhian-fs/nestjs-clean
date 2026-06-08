@@ -1,8 +1,9 @@
-import { type Either, right, left } from "@/core/either";
-import type { Answer } from "../../enterprise/entities/answer";
-import type { AnswersRepository } from "../repositories/answers-repository";
-import { ResourceNotFoundError } from "./errors/resource-not-found-error";
-import { NotAllowedError } from "./errors/not-allowed-error";
+import { type Either, right, left } from '@/core/either';
+import type { Answer } from '../../enterprise/entities/answer';
+import { AnswersRepository } from '../repositories/answers-repository';
+import { ResourceNotFoundError } from './errors/resource-not-found-error';
+import { NotAllowedError } from './errors/not-allowed-error';
+import { Injectable } from '@nestjs/common';
 
 interface EditAnswerUseCaseRequest {
   authorId: string;
@@ -17,8 +18,9 @@ type EditAnswerUseCaseResponse = Either<
   }
 >;
 
+@Injectable()
 export class EditAnswerUseCase {
-  constructor(private answerRepository: AnswersRepository) { }
+  constructor(private answerRepository: AnswersRepository) {}
 
   async execute({
     authorId,
