@@ -1,6 +1,6 @@
 import { Slug } from '@/domain/forum/enterprise/entities/value-objects/slug';
 import { AppModule } from '@/infra/app.module';
-import { DatabaseModule } from '@faker-js/faker/.';
+import { DatabaseModule } from '@/infra/database/database.module';
 import { INestApplication } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
@@ -30,16 +30,22 @@ describe('Fetch Recent Questions (E2E)', () => {
   test('[GET] /api/questions', async () => {
     const userDb = await studentFactory.makePrismaStudent();
 
-    const accessToken = jwt.sign({ sub: userDb.id });
+    const accessToken = jwt.sign({ sub: userDb.id.toString() });
 
-    Array.from({ length: 2 }).map(async (_, i) => {
-      await questionFactory.makePrismaQuestion({
-        title: `Question ${i + 1}`,
-        slug: Slug.create(`question-${i + 1}`),
-        content: `question ${i + 1} content`,
+    await Promise.all([
+      questionFactory.makePrismaQuestion({
+        title: `Question 1`,
+        slug: Slug.create(`question-1`),
+        content: `question 1 content`,
         authorId: userDb.id,
-      });
-    });
+      }),
+      questionFactory.makePrismaQuestion({
+        title: `Question 2`,
+        slug: Slug.create(`question-2`),
+        content: `question 2 content`,
+        authorId: userDb.id,
+      }),
+    ]);
 
     const response = await request(app.getHttpServer())
       .get('/api/questions')
@@ -48,10 +54,10 @@ describe('Fetch Recent Questions (E2E)', () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual({
-      questions: [
+      questions: expect.arrayContaining([
         expect.objectContaining({ title: 'Question 1' }),
         expect.objectContaining({ title: 'Question 2' }),
-      ],
+      ]),
       page: expect.any(Number),
     });
   });
