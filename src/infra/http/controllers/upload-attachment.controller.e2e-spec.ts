@@ -23,19 +23,19 @@ describe('Upload Attachment (E2E)', () => {
     jwt = moduleRef.get(JwtService);
     await app.init();
   });
-  test('[GET] /api/questions/:slug', async () => {
+  test('[POST] /api/attachments', async () => {
     const userDb = await studentFactory.makePrismaStudent();
 
     const accessToken = jwt.sign({ sub: userDb.id.toString() });
 
     const response = await request(app.getHttpServer())
-      .get('/api/attachments')
+      .post('/api/attachments')
       .set('Authorization', `Bearer ${accessToken}`)
-      .attach('file', './test/e2e/sample-upload.png');
+      .attach('file', './test/e2e/sample-upload.jpg');
 
-    expect(response.statusCode).toBe(200);
+    expect(response.statusCode).toBe(201);
     expect(response.body).toEqual({
-      question: expect.objectContaining({ slug: 'question-01' }),
+      attachmentId: expect.any(String),
     });
   });
 });
