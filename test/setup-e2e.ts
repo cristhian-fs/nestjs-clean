@@ -1,7 +1,10 @@
-import 'dotenv/config';
+import { config } from 'dotenv';
 import { PrismaClient } from '../generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { execSync } from 'child_process';
+
+config({ path: '.env', override: true })
+config({ path: '.env.test', override: true })
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL,

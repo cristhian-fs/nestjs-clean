@@ -1,7 +1,7 @@
-import { PaginationProps } from "@/core/repositories/pagination-props";
-import { QuestionAttachmentsRepository } from "@/domain/forum/application/repositories/question-attachments-repository";
-import { QuestionsRepository } from "@/domain/forum/application/repositories/questions-repository.js";
-import { Question } from "@/domain/forum/enterprise/entities/question.js";
+import { PaginationProps } from '@/core/repositories/pagination-props';
+import { QuestionAttachmentsRepository } from '@/domain/forum/application/repositories/question-attachments-repository';
+import { QuestionsRepository } from '@/domain/forum/application/repositories/questions-repository.js';
+import { Question } from '@/domain/forum/enterprise/entities/question.js';
 
 export class InMemoryQuestionsRepository implements QuestionsRepository {
   public items: Question[] = [];
@@ -12,6 +12,10 @@ export class InMemoryQuestionsRepository implements QuestionsRepository {
 
   async create(question: Question) {
     this.items.push(question);
+
+    this.questionAttachmentsRepository.createMany(
+      question.attachments.getItems(),
+    );
   }
 
   async delete(question: Question) {
@@ -28,6 +32,14 @@ export class InMemoryQuestionsRepository implements QuestionsRepository {
   async save(question: Question): Promise<void> {
     const questionIndex = this.items.findIndex(
       (item) => item.id.toString() === question.id.toString(),
+    );
+
+    this.questionAttachmentsRepository.createMany(
+      question.attachments.getNewItems(),
+    );
+
+    this.questionAttachmentsRepository.deleteMany(
+      question.attachments.getRemovedItems(),
     );
 
     this.items[questionIndex] = question;

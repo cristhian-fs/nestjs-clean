@@ -1,7 +1,7 @@
-import { PaginationProps } from "@/core/repositories/pagination-props";
-import { AnswerAttachmentsRepository } from "@/domain/forum/application/repositories/answer-attachments-repository";
-import type { AnswersRepository } from "@/domain/forum/application/repositories/answers-repository.js";
-import type { Answer } from "@/domain/forum/enterprise/entities/answer.js";
+import { PaginationProps } from '@/core/repositories/pagination-props';
+import { AnswerAttachmentsRepository } from '@/domain/forum/application/repositories/answer-attachments-repository';
+import type { AnswersRepository } from '@/domain/forum/application/repositories/answers-repository.js';
+import type { Answer } from '@/domain/forum/enterprise/entities/answer.js';
 
 export class InMemoryAnswersRepository implements AnswersRepository {
   public items: Answer[] = [];
@@ -12,6 +12,8 @@ export class InMemoryAnswersRepository implements AnswersRepository {
 
   async create(answer: Answer) {
     this.items.push(answer);
+
+    this.answerAttachmentsRepository.createMany(answer.attachments.getItems());
   }
 
   async delete(answer: Answer) {
@@ -32,14 +34,20 @@ export class InMemoryAnswersRepository implements AnswersRepository {
 
     return answer;
   }
-  async save(question: Answer) {
-    const questionIndex = this.items.findIndex(
-      (item) => item.id.toString() === question.id.toString(),
+  async save(answer: Answer) {
+    const answerIndex = this.items.findIndex(
+      (item) => item.id.toString() === answer.id.toString(),
     );
 
-    this.items[questionIndex] = question;
+    this.answerAttachmentsRepository.createMany(
+      answer.attachments.getNewItems(),
+    );
 
-    return question;
+    this.answerAttachmentsRepository.deleteMany(
+      answer.attachments.getRemovedItems(),
+    );
+
+    this.items[answerIndex] = answer;
   }
 
   async findManyByQuestionId(

@@ -1,9 +1,8 @@
-import { PaginationProps } from "@/core/repositories/pagination-props";
-import type { AnswerCommentsRepository } from "@/domain/forum/application/repositories/answer-comments-repository";
-import type { AnswerComment } from "@/domain/forum/enterprise/entities/answer-comment";
+import { PaginationProps } from '@/core/repositories/pagination-props';
+import type { AnswerCommentsRepository } from '@/domain/forum/application/repositories/answer-comments-repository';
+import type { AnswerComment } from '@/domain/forum/enterprise/entities/answer-comment';
 
-export class InMemoryAnswerCommentsRepository
-  implements AnswerCommentsRepository {
+export class InMemoryAnswerCommentsRepository implements AnswerCommentsRepository {
   public items: AnswerComment[] = [];
 
   async create(comment: AnswerComment) {
@@ -28,7 +27,7 @@ export class InMemoryAnswerCommentsRepository
     this.items.splice(itemIndex, 1);
   }
 
-  async findManyByQuestionId(
+  async findManyByAnswerId(
     questionId: string,
     { page }: PaginationProps,
   ): Promise<AnswerComment[]> {
