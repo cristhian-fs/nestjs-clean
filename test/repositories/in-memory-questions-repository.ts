@@ -1,3 +1,4 @@
+import { DomainEvents } from '@/core/events/domain-events';
 import { PaginationProps } from '@/core/repositories/pagination-props';
 import { QuestionsRepository } from '@/domain/forum/application/repositories/questions-repository.js';
 import { Question } from '@/domain/forum/enterprise/entities/question.js';
@@ -48,6 +49,8 @@ export class InMemoryQuestionsRepository implements QuestionsRepository {
     );
 
     this.items[questionIndex] = question;
+
+    DomainEvents.dispatchEventsForAggregate(question.id);
   }
   async findBySlug(slug: string): Promise<Question | null> {
     const question = this.items.find((item) => item.slug.value === slug);
