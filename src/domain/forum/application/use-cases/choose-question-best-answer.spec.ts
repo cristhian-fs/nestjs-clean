@@ -1,22 +1,25 @@
-import { test, expect, describe, beforeEach } from "vitest";
-import { UniqueEntityID } from "@/core/entities/unique-entity-id.js";
-import { InMemoryAnswersRepository } from "test/repositories/in-memory-answers-repository.js";
-import { DeleteAnswerUseCase } from "./delete-answer.js";
-import { makeAnswer } from "test/factories/make-answer.js";
-import { InMemoryQuestionsRepository } from "test/repositories/in-memory-questions-repository.js";
-import { ChooseQuestionBestAnswerUseCase } from "./choose-question-best-answer.js";
-import { makeQuestion } from "test/factories/make-question.js";
-import { NotAllowedError } from "./errors/not-allowed-error.js";
-import { InMemoryQuestionAttachmentsRepository } from "test/repositories/in-memory-question-attachments-repository.js";
-import { InMemoryAnswerAttachmentsRepository } from "test/repositories/in-memory-answer-attachments-repository.js";
+import { test, expect, describe, beforeEach } from 'vitest';
+import { UniqueEntityID } from '@/core/entities/unique-entity-id.js';
+import { InMemoryAnswersRepository } from 'test/repositories/in-memory-answers-repository.js';
+import { makeAnswer } from 'test/factories/make-answer.js';
+import { InMemoryQuestionsRepository } from 'test/repositories/in-memory-questions-repository.js';
+import { ChooseQuestionBestAnswerUseCase } from './choose-question-best-answer.js';
+import { makeQuestion } from 'test/factories/make-question.js';
+import { NotAllowedError } from './errors/not-allowed-error.js';
+import { InMemoryQuestionAttachmentsRepository } from 'test/repositories/in-memory-question-attachments-repository.js';
+import { InMemoryAnswerAttachmentsRepository } from 'test/repositories/in-memory-answer-attachments-repository.js';
+import { InMemoryAttachmentsRepository } from 'test/repositories/in-memory-attachments-repository.js';
+import { InMemoryStudentsRepository } from 'test/repositories/in-memory-students-repository.js';
 
 let inMemoryQuestionAttachmentsRepository: InMemoryQuestionAttachmentsRepository;
 let inMemoryAnswerAttachmentsRepository: InMemoryAnswerAttachmentsRepository;
 let inMemoryAnswersRepository: InMemoryAnswersRepository;
 let inMemoryQuestionsRepository: InMemoryQuestionsRepository;
+let inMemoryAttachmentsRepository: InMemoryAttachmentsRepository;
+let inMemoryStudentsRepository: InMemoryStudentsRepository;
 let sut: ChooseQuestionBestAnswerUseCase;
 
-describe("Choose Question Best Answer", () => {
+describe('Choose Question Best Answer', () => {
   beforeEach(() => {
     inMemoryQuestionAttachmentsRepository =
       new InMemoryQuestionAttachmentsRepository();
@@ -25,8 +28,12 @@ describe("Choose Question Best Answer", () => {
     inMemoryAnswersRepository = new InMemoryAnswersRepository(
       inMemoryAnswerAttachmentsRepository,
     );
+    inMemoryAttachmentsRepository = new InMemoryAttachmentsRepository();
+    inMemoryStudentsRepository = new InMemoryStudentsRepository();
     inMemoryQuestionsRepository = new InMemoryQuestionsRepository(
       inMemoryQuestionAttachmentsRepository,
+      inMemoryAttachmentsRepository,
+      inMemoryStudentsRepository,
     );
     sut = new ChooseQuestionBestAnswerUseCase(
       inMemoryQuestionsRepository,
@@ -34,7 +41,7 @@ describe("Choose Question Best Answer", () => {
     );
   });
 
-  test("should be able to choose the best answer from a question", async () => {
+  test('should be able to choose the best answer from a question', async () => {
     const newQuestion = makeQuestion();
 
     await inMemoryQuestionsRepository.create(newQuestion);
@@ -55,9 +62,9 @@ describe("Choose Question Best Answer", () => {
     );
   });
 
-  test("should not be able to delete a answer from another user", async () => {
+  test('should not be able to delete a answer from another user', async () => {
     const newQuestion = makeQuestion({
-      authorId: new UniqueEntityID("author-1"),
+      authorId: new UniqueEntityID('author-1'),
     });
 
     await inMemoryQuestionsRepository.create(newQuestion);
@@ -69,7 +76,7 @@ describe("Choose Question Best Answer", () => {
     await inMemoryAnswersRepository.create(newAnswer);
 
     const result = await sut.execute({
-      authorId: "author-2",
+      authorId: 'author-2',
       answerId: newAnswer.id.toString(),
     });
 
