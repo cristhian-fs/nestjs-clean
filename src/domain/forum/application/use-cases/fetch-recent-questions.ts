@@ -1,7 +1,7 @@
-import { QuestionsRepository } from "../repositories/questions-repository";
-import type { Question } from "../../enterprise/entities/question";
-import { type Either, right } from "@/core/either";
-import { Injectable } from "@nestjs/common";
+import { QuestionsRepository } from '../repositories/questions-repository';
+import { type Either, right } from '@/core/either';
+import { Injectable } from '@nestjs/common';
+import { QuestionSummary } from '../../enterprise/entities/value-objects/question-summary';
 
 interface FetchRecentQuestionsUseCaseRequest {
   page: number;
@@ -10,18 +10,20 @@ interface FetchRecentQuestionsUseCaseRequest {
 type FetchRecentQuestionsUseCaseResponse = Either<
   null,
   {
-    questions: Question[];
+    questions: QuestionSummary[];
   }
 >;
 
 @Injectable()
 export class FetchRecentQuestionsUseCase {
-  constructor(private questionsRepository: QuestionsRepository) { }
+  constructor(private questionsRepository: QuestionsRepository) {}
 
   async execute({
     page,
   }: FetchRecentQuestionsUseCaseRequest): Promise<FetchRecentQuestionsUseCaseResponse> {
-    const questions = await this.questionsRepository.findManyRecents({ page });
+    const questions = await this.questionsRepository.findManyRecentsWithAuthor({
+      page,
+    });
 
     return right({ questions });
   }
