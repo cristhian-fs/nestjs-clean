@@ -43,25 +43,25 @@ The core domain of the application.
 
 **Entities**
 
-| Entity | Description |
-|---|---|
-| `Student` | Registered user who can post questions and answers |
-| `Instructor` | Privileged user role |
-| `Question` | A forum question with a title, slug, content, and optional best answer |
-| `Answer` | A response to a question |
-| `Comment` | A comment on a question or answer |
-| `Attachment` | A file attached to a question or answer |
-| `QuestionAttachment` / `AnswerAttachment` | Join entities for attachment lists |
+| Entity                                    | Description                                                            |
+| ----------------------------------------- | ---------------------------------------------------------------------- |
+| `Student`                                 | Registered user who can post questions and answers                     |
+| `Instructor`                              | Privileged user role                                                   |
+| `Question`                                | A forum question with a title, slug, content, and optional best answer |
+| `Answer`                                  | A response to a question                                               |
+| `Comment`                                 | A comment on a question or answer                                      |
+| `Attachment`                              | A file attached to a question or answer                                |
+| `QuestionAttachment` / `AnswerAttachment` | Join entities for attachment lists                                     |
 
 **Value Objects**
 
-| Value Object | Description |
-|---|---|
-| `Slug` | URL-safe identifier derived from a question title |
-| `QuestionDetails` | Enriched read model with author and attachments |
-| `QuestionSummary` | Lightweight read model for listing questions |
-| `AnswerWithAuthor` | Answer enriched with author information |
-| `CommentWithAuthor` | Comment enriched with author information |
+| Value Object        | Description                                       |
+| ------------------- | ------------------------------------------------- |
+| `Slug`              | URL-safe identifier derived from a question title |
+| `QuestionDetails`   | Enriched read model with author and attachments   |
+| `QuestionSummary`   | Lightweight read model for listing questions      |
+| `AnswerWithAuthor`  | Answer enriched with author information           |
+| `CommentWithAuthor` | Comment enriched with author information          |
 
 **Domain Events**
 
@@ -74,8 +74,8 @@ Separate bounded context for in-app notifications.
 
 **Entities**
 
-| Entity | Description |
-|---|---|
+| Entity         | Description                                                        |
+| -------------- | ------------------------------------------------------------------ |
 | `Notification` | A notification sent to a user, with an optional `readAt` timestamp |
 
 ## Endpoints
@@ -84,52 +84,52 @@ All routes are prefixed with `/api`. Authentication is required on every route e
 
 ### Accounts
 
-| Method | Path | Description |
-|---|---|---|
-| `POST` | `/api/accounts` | Register a new student account |
+| Method | Path            | Description                          |
+| ------ | --------------- | ------------------------------------ |
+| `POST` | `/api/accounts` | Register a new student account       |
 | `POST` | `/api/sessions` | Authenticate and receive a JWT token |
 
 ### Questions
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/api/questions` | List recent questions (paginated) |
-| `GET` | `/api/questions/:slug` | Get a question by its slug |
-| `POST` | `/api/questions` | Create a new question |
-| `PUT` | `/api/questions/:id` | Edit a question |
-| `DELETE` | `/api/questions/:id` | Delete a question |
+| Method   | Path                   | Description                       |
+| -------- | ---------------------- | --------------------------------- |
+| `GET`    | `/api/questions`       | List recent questions (paginated) |
+| `GET`    | `/api/questions/:slug` | Get a question by its slug        |
+| `POST`   | `/api/questions`       | Create a new question             |
+| `PUT`    | `/api/questions/:id`   | Edit a question                   |
+| `DELETE` | `/api/questions/:id`   | Delete a question                 |
 
 ### Answers
 
-| Method | Path | Description |
-|---|---|---|
-| `POST` | `/api/questions/:questionId/answers` | Post an answer to a question |
-| `GET` | `/api/questions/:id/answers` | List answers for a question |
-| `PUT` | `/api/answers/:id` | Edit an answer |
-| `DELETE` | `/api/answers/:id` | Delete an answer |
-| `PATCH` | `/api/answers/:answerId/choose-as-best` | Mark an answer as the best answer |
+| Method   | Path                                    | Description                       |
+| -------- | --------------------------------------- | --------------------------------- |
+| `POST`   | `/api/questions/:questionId/answers`    | Post an answer to a question      |
+| `GET`    | `/api/questions/:id/answers`            | List answers for a question       |
+| `PUT`    | `/api/answers/:id`                      | Edit an answer                    |
+| `DELETE` | `/api/answers/:id`                      | Delete an answer                  |
+| `PATCH`  | `/api/answers/:answerId/choose-as-best` | Mark an answer as the best answer |
 
 ### Comments
 
-| Method | Path | Description |
-|---|---|---|
-| `POST` | `/api/questions/:questionId/comments` | Comment on a question |
-| `GET` | `/api/questions/:id/comments` | List comments on a question |
-| `DELETE` | `/api/questions/comments/:id` | Delete a question comment |
-| `POST` | `/api/answers/:answerId/comments` | Comment on an answer |
-| `GET` | `/api/answers/:id/comments` | List comments on an answer |
-| `DELETE` | `/api/answers/comments/:id` | Delete an answer comment |
+| Method   | Path                                  | Description                 |
+| -------- | ------------------------------------- | --------------------------- |
+| `POST`   | `/api/questions/:questionId/comments` | Comment on a question       |
+| `GET`    | `/api/questions/:id/comments`         | List comments on a question |
+| `DELETE` | `/api/questions/comments/:id`         | Delete a question comment   |
+| `POST`   | `/api/answers/:answerId/comments`     | Comment on an answer        |
+| `GET`    | `/api/answers/:id/comments`           | List comments on an answer  |
+| `DELETE` | `/api/answers/comments/:id`           | Delete an answer comment    |
 
 ### Attachments
 
-| Method | Path | Description |
-|---|---|---|
+| Method | Path               | Description                                                                 |
+| ------ | ------------------ | --------------------------------------------------------------------------- |
 | `POST` | `/api/attachments` | Upload a file; returns the attachment ID to include in a question or answer |
 
 ### Notifications
 
-| Method | Path | Description |
-|---|---|---|
+| Method  | Path                                      | Description                 |
+| ------- | ----------------------------------------- | --------------------------- |
 | `PATCH` | `/api/notifications/:notificationId/read` | Mark a notification as read |
 
 ## Authentication
@@ -144,14 +144,14 @@ Authorization: Bearer <token>
 
 ## Infrastructure
 
-| Concern | Technology |
-|---|---|
-| Framework | NestJS 11 |
-| Database | PostgreSQL via Prisma 7 |
-| Cache | Redis (ioredis) |
-| File storage | AWS S3 / MinIO |
-| Validation | Zod + zod-validation-error |
-| Testing | Vitest |
+| Concern      | Technology                 |
+| ------------ | -------------------------- |
+| Framework    | NestJS 11                  |
+| Database     | PostgreSQL via Prisma 7    |
+| Cache        | Redis (ioredis)            |
+| File storage | AWS S3 / MinIO             |
+| Validation   | Zod + zod-validation-error |
+| Testing      | Vitest                     |
 
 ## Environment Variables
 
@@ -205,47 +205,3 @@ End-to-end tests (requires the Docker services running):
 ```bash
 pnpm test:e2e
 ```
-
-## Manual HTTP Testing with Hurl
-
-The `hurl/` directory contains [Hurl](https://hurl.dev) files for manually exercising every endpoint. Each file is self-contained: it authenticates and creates any required data before running its operations.
-
-| File | Covered endpoints |
-|---|---|
-| `hurl/auth.hurl` | `POST /api/accounts`, `POST /api/sessions` |
-| `hurl/questions.hurl` | Create, get by slug, list, edit, delete question |
-| `hurl/answers.hurl` | Post answer, list answers, edit answer, choose best answer |
-| `hurl/comments.hurl` | Comment on question/answer, list comments, delete comment |
-| `hurl/attachments.hurl` | Upload attachment, create question with attachment |
-| `hurl/notifications.hurl` | Mark notification as read |
-
-### Prerequisites
-
-Create a student account first (only needed once):
-
-```bash
-hurl hurl/auth.hurl
-```
-
-### Running a file
-
-All files must be run from the project root so that relative paths resolve correctly:
-
-```bash
-hurl hurl/questions.hurl
-hurl hurl/answers.hurl
-hurl hurl/comments.hurl
-hurl hurl/attachments.hurl
-```
-
-### Notifications
-
-Notifications are created automatically by the system and there is no GET endpoint to list them. Obtain a `notificationId` from the database and pass it as a variable:
-
-```bash
-hurl hurl/notifications.hurl --variable notificationId=<uuid>
-```
-
-### Slug generation
-
-The `questions.hurl`, `answers.hurl`, and `comments.hurl` files create questions with fixed titles so that the resulting slug is predictable and can be used in the same run to fetch the question ID. If a file is run more than once without the delete step cleaning up, the second run will fail on question creation due to a duplicate slug. Delete the leftover row from the database or change the title before re-running.
