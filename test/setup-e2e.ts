@@ -31,6 +31,7 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
+  await prisma.$executeRawUnsafe('DELETE FROM "notifications"');
   await prisma.$executeRawUnsafe('DELETE FROM "answers"');
   await prisma.$executeRawUnsafe('DELETE FROM "comments"');
   await prisma.$executeRawUnsafe('DELETE FROM "questions"');

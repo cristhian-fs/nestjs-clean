@@ -1,14 +1,10 @@
 import { QuestionsRepository } from '@/domain/forum/application/repositories/questions-repository';
-import { Slug } from '@/domain/forum/enterprise/entities/value-objects/slug';
 import { AppModule } from '@/infra/app.module';
 import { CacheRepository } from '@/infra/cache/cache-repository';
 import { CacheModule } from '@/infra/cache/cache.module';
 import { DatabaseModule } from '@/infra/database/database.module';
 import { INestApplication } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
-import { emitKeypressEvents } from 'readline';
-import request from 'supertest';
 import { AttachmentFactory } from 'test/factories/make-attachment';
 import { QuestionFactory } from 'test/factories/make-question';
 import { QuestionAttachmentFactory } from 'test/factories/make-question-attachment';
@@ -42,13 +38,15 @@ describe('Prisma Questions Repository (E2E)', () => {
     questionAttachmentFactory = moduleRef.get(QuestionAttachmentFactory);
     cacheRepository = moduleRef.get(CacheRepository);
     questionsRepository = moduleRef.get(QuestionsRepository);
+
     await app.init();
   });
+
   it('should cache question details', async () => {
-    const userDb = await studentFactory.makePrismaStudent();
+    const user = await studentFactory.makePrismaStudent();
 
     const question = await questionFactory.makePrismaQuestion({
-      authorId: userDb.id,
+      authorId: user.id,
     });
 
     const attachment = await attachmentFactory.makePrismaAttachment();
@@ -64,18 +62,14 @@ describe('Prisma Questions Repository (E2E)', () => {
 
     const cached = await cacheRepository.get(`question:${slug}:details`);
 
-    expect(cached).toEqual(
-      expect.objectContaining({
-        id: questionDetails?.questionId.toString(),
-      }),
-    );
+    expect(cached).toEqual(JSON.stringify(questionDetails));
   });
 
   it('should return cached question details on subsequent calls', async () => {
-    const userDb = await studentFactory.makePrismaStudent();
+    const user = await studentFactory.makePrismaStudent();
 
     const question = await questionFactory.makePrismaQuestion({
-      authorId: userDb.id,
+      authorId: user.id,
     });
 
     const attachment = await attachmentFactory.makePrismaAttachment();
@@ -84,36 +78,24 @@ describe('Prisma Questions Repository (E2E)', () => {
       attachmentId: attachment.id,
       questionId: question.id,
     });
+
     const slug = question.slug.value;
 
-    let cached = await cacheRepository.get(`question:${slug}:details`);
-
-    expect(cached).toBeNull();
-
-    await questionsRepository.findDetailsBySlug(slug);
-
-    cached = await cacheRepository.get(`question:${slug}:details`);
-
-    expect(cached).not.toBeNull();
-
-    if (!cached) {
-      throw new Error();
-    }
+    await cacheRepository.set(
+      `question:${slug}:details`,
+      JSON.stringify({ empty: true }),
+    );
 
     const questionDetails = await questionsRepository.findDetailsBySlug(slug);
 
-    expect(JSON.parse(cached)).toEqual(
-      expect.objectContaining({
-        id: questionDetails?.questionId.toString(),
-      }),
-    );
+    expect(questionDetails).toEqual({ empty: true });
   });
 
   it('should reset question details cache when saving the question', async () => {
-    const userDb = await studentFactory.makePrismaStudent();
+    const user = await studentFactory.makePrismaStudent();
 
     const question = await questionFactory.makePrismaQuestion({
-      authorId: userDb.id,
+      authorId: user.id,
     });
 
     const attachment = await attachmentFactory.makePrismaAttachment();
@@ -122,6 +104,7 @@ describe('Prisma Questions Repository (E2E)', () => {
       attachmentId: attachment.id,
       questionId: question.id,
     });
+
     const slug = question.slug.value;
 
     await cacheRepository.set(
