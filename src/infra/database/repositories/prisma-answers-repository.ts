@@ -6,6 +6,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { PrismaAnswerMapper } from '../prisma/mappers/prisma-answer-mapper';
 import { AnswerAttachmentsRepository } from '@/domain/forum/application/repositories/answer-attachments-repository';
 import { DomainEvents } from '@/core/events/domain-events';
+import { AnswerWithAuthor } from '@/domain/forum/enterprise/entities/value-objects/answer-with-author';
+import { PrismaAnswerWithAuthorMapper } from '../prisma/mappers/prisma-answer-with-author-mapper';
 
 @Injectable()
 export class PrismaAnswersRepository implements AnswersRepository {
@@ -26,6 +28,7 @@ export class PrismaAnswersRepository implements AnswersRepository {
     );
     DomainEvents.dispatchEventsForAggregate(answer.id);
   }
+
   async findManyByQuestionId(
     questionId: string,
     props: PaginationProps,
@@ -44,6 +47,30 @@ export class PrismaAnswersRepository implements AnswersRepository {
     });
     return answers.map((answer) => PrismaAnswerMapper.toDomain(answer));
   }
+
+  async findManyByQuestionIdWithAuthor(
+    questionId: string,
+    { page }: PaginationProps,
+  ): Promise<AnswerWithAuthor[]> {
+    const answers = await this.prisma.answer.findMany({
+      take: 20,
+      skip: (page - 1) * 20,
+      include: {
+        attachments: true,
+        author: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      where: {
+        questionId,
+      },
+    });
+    return answers.map((answer) =>
+      PrismaAnswerWithAuthorMapper.toDomain(answer),
+    );
+  }
+
   async findById(id: string): Promise<Answer | null> {
     const answer = await this.prisma.answer.findUnique({
       where: {

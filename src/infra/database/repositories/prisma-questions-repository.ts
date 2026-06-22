@@ -9,6 +9,8 @@ import { QuestionDetails } from '@/domain/forum/enterprise/entities/value-object
 import { PrismaQuestionDetailsMapper } from '../prisma/mappers/prisma-question-details-mapper';
 import { DomainEvents } from '@/core/events/domain-events';
 import { CacheRepository } from '@/infra/cache/cache-repository';
+import { QuestionSummary } from '@/domain/forum/enterprise/entities/value-objects/question-summary';
+import { PrismaQuestionSummaryMapper } from '../prisma/mappers/prisma-question-summary-mapper';
 
 @Injectable()
 export class PrismaQuestionsRepository implements QuestionsRepository {
@@ -96,6 +98,23 @@ export class PrismaQuestionsRepository implements QuestionsRepository {
       },
     });
     return questions.map((question) => PrismaQuestionMapper.toDomain(question));
+  }
+  async findManyRecentsWithAuthor({
+    page,
+  }: PaginationProps): Promise<QuestionSummary[]> {
+    const questions = await this.prisma.question.findMany({
+      take: 20,
+      include: {
+        author: true,
+      },
+      skip: (page - 1) * 20,
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+    return questions.map((question) =>
+      PrismaQuestionSummaryMapper.toDomain(question),
+    );
   }
   async findById(id: string): Promise<Question | null> {
     const question = await this.prisma.question.findUnique({
