@@ -1,10 +1,11 @@
-import { test, expect, describe, beforeEach } from "vitest";
-import { InMemoryQuestionsRepository } from "test/repositories/in-memory-questions-repository";
-import { makeQuestion } from "test/factories/make-question";
-import { FetchRecentQuestionsUseCase } from "./fetch-recent-questions";
-import { InMemoryQuestionAttachmentsRepository } from "test/repositories/in-memory-question-attachments-repository";
-import { InMemoryAttachmentsRepository } from "test/repositories/in-memory-attachments-repository";
-import { InMemoryStudentsRepository } from "test/repositories/in-memory-students-repository";
+import { test, expect, describe, beforeEach } from 'vitest';
+import { InMemoryQuestionsRepository } from 'test/repositories/in-memory-questions-repository';
+import { makeQuestion } from 'test/factories/make-question';
+import { FetchRecentQuestionsUseCase } from './fetch-recent-questions';
+import { InMemoryQuestionAttachmentsRepository } from 'test/repositories/in-memory-question-attachments-repository';
+import { InMemoryAttachmentsRepository } from 'test/repositories/in-memory-attachments-repository';
+import { InMemoryStudentsRepository } from 'test/repositories/in-memory-students-repository';
+import { makeStudent } from 'test/factories/make-student';
 
 let inMemoryQuestionsRepository: InMemoryQuestionsRepository;
 let inMemoryQuestionAttachmentsRepository: InMemoryQuestionAttachmentsRepository;
@@ -12,7 +13,7 @@ let inMemoryAttachmentsRepository: InMemoryAttachmentsRepository;
 let inMemoryStudentsRepository: InMemoryStudentsRepository;
 let sut: FetchRecentQuestionsUseCase;
 
-describe("Fetch Recent Questions", () => {
+describe('Fetch Recent Questions', () => {
   beforeEach(() => {
     inMemoryQuestionAttachmentsRepository =
       new InMemoryQuestionAttachmentsRepository();
@@ -26,15 +27,17 @@ describe("Fetch Recent Questions", () => {
     sut = new FetchRecentQuestionsUseCase(inMemoryQuestionsRepository);
   });
 
-  test("should be able to get recent questions", async () => {
+  test('should be able to get recent questions', async () => {
+    const student = makeStudent();
+    inMemoryStudentsRepository.items.push(student);
     await inMemoryQuestionsRepository.create(
-      makeQuestion({ createdAt: new Date(2025, 11, 1) }),
+      makeQuestion({ createdAt: new Date(2025, 11, 3), authorId: student.id }),
     );
     await inMemoryQuestionsRepository.create(
-      makeQuestion({ createdAt: new Date(2025, 11, 2) }),
+      makeQuestion({ createdAt: new Date(2025, 11, 2), authorId: student.id }),
     );
     await inMemoryQuestionsRepository.create(
-      makeQuestion({ createdAt: new Date(2025, 11, 3) }),
+      makeQuestion({ createdAt: new Date(2025, 11, 1), authorId: student.id }),
     );
 
     const result = await sut.execute({
@@ -48,9 +51,13 @@ describe("Fetch Recent Questions", () => {
     ]);
   });
 
-  test("should be able to get paginated questions", async () => {
+  test('should be able to get paginated questions', async () => {
+    const student = makeStudent();
+    inMemoryStudentsRepository.items.push(student);
     for (let i = 1; i <= 22; i++) {
-      await inMemoryQuestionsRepository.create(makeQuestion());
+      await inMemoryQuestionsRepository.create(
+        makeQuestion({ authorId: student.id }),
+      );
     }
 
     const result = await sut.execute({
