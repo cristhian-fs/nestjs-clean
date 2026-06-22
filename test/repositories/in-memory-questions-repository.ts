@@ -6,6 +6,7 @@ import { QuestionDetails } from '@/domain/forum/enterprise/entities/value-object
 import { InMemoryStudentsRepository } from './in-memory-students-repository';
 import { InMemoryAttachmentsRepository } from './in-memory-attachments-repository';
 import { InMemoryQuestionAttachmentsRepository } from './in-memory-question-attachments-repository';
+import { QuestionSummary } from '@/domain/forum/enterprise/entities/value-objects/question-summary';
 
 export class InMemoryQuestionsRepository implements QuestionsRepository {
   public items: Question[] = [];
@@ -104,6 +105,39 @@ export class InMemoryQuestionsRepository implements QuestionsRepository {
       createdAt: question.createdAt,
       updatedAt: question.updatedAt,
     });
+  }
+
+  async findManyRecentsWithAuthor(
+    props: PaginationProps,
+  ): Promise<QuestionSummary[]> {
+    const questions = this.items
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      .slice((props.page - 1) * 20, props.page * 20)
+      .map((question) => {
+        const author = this.studentsRepository.items.find((student) =>
+          student.id.equals(question.authorId),
+        );
+
+        if (!author) {
+          throw new Error(
+            `Author with ID "${question.authorId.toString()}" does not exist`,
+          );
+        }
+
+        return QuestionSummary.create({
+          questionId: question.id,
+          authorId: author.id,
+          author: author.name,
+          title: question.title,
+          excerpt: question.content.substring(0, 120).concat('...'),
+          bestAnswerId: question.bestAnswerId,
+          slug: question.slug,
+          createdAt: question.createdAt,
+          updatedAt: question.updatedAt,
+        });
+      });
+
+    return questions;
   }
   async findById(id: string): Promise<Question | null> {
     const question = this.items.find((item) => item.id.toString() === id);
