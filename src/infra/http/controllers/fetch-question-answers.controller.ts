@@ -1,8 +1,14 @@
-import { BadRequestException, Controller, Get, Param, Query } from '@nestjs/common';
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  Param,
+  Query,
+} from '@nestjs/common';
 import { ZodValidationPipe } from '@/infra/http/pipes/zod-validation-pipe';
 import z from 'zod';
 import { FetchQuestionAnswersUseCase } from '@/domain/forum/application/use-cases/fetch-question-answers';
-import { AnswerPresenter } from '@/infra/presenters/answer-presenter';
+import { AnswerWithAuthorPresenter } from '@/infra/presenters/answer-with-author-presenter';
 
 const pageQueryParamSchema = z
   .string()
@@ -20,10 +26,13 @@ export class FetchQuestionAnswersController {
   constructor(private fetchQuestionAnswers: FetchQuestionAnswersUseCase) {}
 
   @Get()
-  async handle(@Query('page', queryValidationPipe) page: PageQueryParamSchema, @Param('id') questionId: string) {
+  async handle(
+    @Query('page', queryValidationPipe) page: PageQueryParamSchema,
+    @Param('id') questionId: string,
+  ) {
     const result = await this.fetchQuestionAnswers.execute({
-			page,
-			questionId
+      page,
+      questionId,
     });
 
     if (result.isLeft()) {
@@ -31,6 +40,6 @@ export class FetchQuestionAnswersController {
     }
 
     const answers = result.value.answers;
-    return { answers: answers.map(AnswerPresenter.toHTTP), page };
+    return { answers: answers.map(AnswerWithAuthorPresenter.toHTTP), page };
   }
 }
