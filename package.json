@@ -32,6 +32,7 @@
     "@prisma/client": "^7.8.0",
     "bcryptjs": "^3.0.3",
     "client-s3": "link:@types/@aws-sdk/client-s3",
+    "ioredis": "^5.11.1",
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
