@@ -1,27 +1,36 @@
 import { PaginationProps } from '@/core/repositories/pagination-props';
 import { QuestionsRepository } from '@/domain/forum/application/repositories/questions-repository';
+import { QuestionAttachmentsRepository } from '@/domain/forum/application/repositories/question-attachments-repository';
 import { Question } from '@/domain/forum/enterprise/entities/question';
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { PrismaQuestionMapper } from '../prisma/mappers/prisma-question-mapper';
-import { QuestionAttachmentsRepository } from '@/domain/forum/application/repositories/question-attachments-repository';
 import { QuestionDetails } from '@/domain/forum/enterprise/entities/value-objects/question-details';
-import { PrismaQuestionDetailsMapper } from '../prisma/mappers/prisma-question-details-mapper';
 import { DomainEvents } from '@/core/events/domain-events';
 import { CacheRepository } from '@/infra/cache/cache-repository';
 import { QuestionSummary } from '@/domain/forum/enterprise/entities/value-objects/question-summary';
-import { PrismaQuestionSummaryMapper } from '../prisma/mappers/prisma-question-summary-mapper';
+import { InjectRepository } from '@nestjs/typeorm';
+import { QuestionEntity } from '../entities/question.entity';
+import { Repository } from 'typeorm';
+import { TypeORMQuestionMapper } from '../mappers/typeorm-question-mapper';
+import {
+  TypeORMQuestionSummary,
+  TypeORMQuestionSummaryMapper,
+} from '../mappers/typeorm-question-summary-mapper';
+import {
+  TypeORMQuestionDetails,
+  TypeORMQuestionDetailsMapper,
+} from '../mappers/typeorm-question-details-mapper';
 
 @Injectable()
-export class PrismaQuestionsRepository implements QuestionsRepository {
+export class TypeORMQuestionsRepository implements QuestionsRepository {
   constructor(
-    private prisma: PrismaService,
+    @InjectRepository(QuestionEntity)
+    private questionsRepo: Repository<QuestionEntity>,
     private cache: CacheRepository,
     private questionAttachmentsRepository: QuestionAttachmentsRepository,
   ) {}
 
   async findBySlug(slug: string): Promise<Question | null> {
-    const question = await this.prisma.question.findUnique({
+    const question = await this.questionsRepo.findOne({
       where: {
         slug,
       },
@@ -29,7 +38,7 @@ export class PrismaQuestionsRepository implements QuestionsRepository {
 
     if (!question) return null;
 
-    return PrismaQuestionMapper.toDomain(question);
+    return TypeORMQuestionMapper.toDomain(question);
   }
 
   async findDetailsBySlug(slug: string): Promise<QuestionDetails | null> {
@@ -40,19 +49,17 @@ export class PrismaQuestionsRepository implements QuestionsRepository {
 
       return cachedData;
     }
-    const question = await this.prisma.question.findUnique({
-      where: {
-        slug,
-      },
-      include: {
-        author: true,
-        attachments: true,
-      },
-    });
+
+    const question = (await this.questionsRepo
+      .createQueryBuilder('question')
+      .leftJoinAndSelect('question.author', 'author')
+      .leftJoinAndSelect('question.attachments', 'attachments')
+      .where('question.slug = :slug', { slug })
+      .getRawOne()) as unknown as TypeORMQuestionDetails;
 
     if (!question) return null;
 
-    const questionDetails = PrismaQuestionDetailsMapper.toDomain(question);
+    const questionDetails = TypeORMQuestionDetailsMapper.toDomain(question);
     await this.cache.set(
       `question:${slug}:details`,
       JSON.stringify(questionDetails),
@@ -62,11 +69,9 @@ export class PrismaQuestionsRepository implements QuestionsRepository {
   }
 
   async create(question: Question): Promise<void> {
-    const data = PrismaQuestionMapper.toPrisma(question);
+    const data = TypeORMQuestionMapper.toPersistence(question);
 
-    await this.prisma.question.create({
-      data,
-    });
+    await this.questionsRepo.save(this.questionsRepo.create(data));
 
     await this.questionAttachmentsRepository.createMany(
       question.attachments.getItems(),
@@ -75,13 +80,15 @@ export class PrismaQuestionsRepository implements QuestionsRepository {
     DomainEvents.dispatchEventsForAggregate(question.id);
   }
   async save(question: Question): Promise<void> {
-    const data = PrismaQuestionMapper.toPrisma(question);
+    const data = TypeORMQuestionMapper.toPersistence(question);
 
     await Promise.all([
-      this.prisma.question.update({
+      this.questionsRepo.update(
+        {
+          id: data.id.toString(),
+        },
         data,
-        where: { id: data.id },
-      }),
+      ),
       this.questionAttachmentsRepository.createMany(
         question.attachments.getNewItems(),
       ),
@@ -93,34 +100,33 @@ export class PrismaQuestionsRepository implements QuestionsRepository {
     DomainEvents.dispatchEventsForAggregate(question.id);
   }
   async findManyRecents({ page }: PaginationProps): Promise<Question[]> {
-    const questions = await this.prisma.question.findMany({
+    const questions = await this.questionsRepo.find({
       take: 20,
       skip: (page - 1) * 20,
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-    return questions.map((question) => PrismaQuestionMapper.toDomain(question));
-  }
-  async findManyRecentsWithAuthor({
-    page,
-  }: PaginationProps): Promise<QuestionSummary[]> {
-    const questions = await this.prisma.question.findMany({
-      take: 20,
-      include: {
-        author: true,
-      },
-      skip: (page - 1) * 20,
-      orderBy: {
+      order: {
         createdAt: 'desc',
       },
     });
     return questions.map((question) =>
-      PrismaQuestionSummaryMapper.toDomain(question),
+      TypeORMQuestionMapper.toDomain(question),
+    );
+  }
+  async findManyRecentsWithAuthor({
+    page,
+  }: PaginationProps): Promise<QuestionSummary[]> {
+    const questions = (await this.questionsRepo
+      .createQueryBuilder('question')
+      .leftJoinAndSelect('question.author', 'author')
+      .orderBy('question.createdAt', 'DESC')
+      .take(20)
+      .skip((page - 1) * 20)
+      .getRawMany()) as unknown as TypeORMQuestionSummary[];
+    return questions.map((question) =>
+      TypeORMQuestionSummaryMapper.toDomain(question),
     );
   }
   async findById(id: string): Promise<Question | null> {
-    const question = await this.prisma.question.findUnique({
+    const question = await this.questionsRepo.findOne({
       where: {
         id,
       },
@@ -128,13 +134,13 @@ export class PrismaQuestionsRepository implements QuestionsRepository {
 
     if (!question) return null;
 
-    return PrismaQuestionMapper.toDomain(question);
+    return TypeORMQuestionMapper.toDomain(question);
   }
   async delete(question: Question): Promise<void> {
-    const data = PrismaQuestionMapper.toPrisma(question);
+    const data = TypeORMQuestionMapper.toPersistence(question);
 
-    await this.prisma.question.delete({
-      where: { id: data.id },
+    await this.questionsRepo.delete({
+      id: data.id,
     });
   }
 }

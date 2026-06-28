@@ -12,8 +12,8 @@ export class InMemoryAnswersRepository implements AnswersRepository {
 
   constructor(
     private answerAttachmentsRepository: InMemoryAnswerAttachmentsRepository,
-    private attachmentsRepository: InMemoryAttachmentsRepository,
-    private studentsRepository: InMemoryStudentsRepository,
+    private attachmentsRepository?: InMemoryAttachmentsRepository,
+    private studentsRepository?: InMemoryStudentsRepository,
   ) {}
 
   async create(answer: Answer) {
@@ -77,7 +77,7 @@ export class InMemoryAnswersRepository implements AnswersRepository {
       .filter((item) => item.questionId.toString() === questionId)
       .slice((page - 1) * 20, page * 20)
       .map((answer) => {
-        const author = this.studentsRepository.items.find((item) =>
+        const author = this.studentsRepository!.items.find((item) =>
           answer.authorId.equals(item.id),
         );
 
@@ -90,7 +90,7 @@ export class InMemoryAnswersRepository implements AnswersRepository {
         );
 
         const attachments = answerAttachments.map((answerAttachment) => {
-          const attachment = this.attachmentsRepository.items.find(
+          const attachment = this.attachmentsRepository!.items.find(
             (attachment) => attachment.id.equals(answerAttachment.attachmentId),
           );
 
