@@ -1,65 +1,99 @@
 import { Module } from '@nestjs/common';
-import { PrismaService } from './prisma/prisma.service';
-import { PrismaQuestionsRepository } from './repositories/prisma-questions-repository';
-import { PrismaQuestionAttachmentsRepository } from './repositories/prisma-question-attachments-repository';
-import { PrismaQuestionCommentsRepository } from './repositories/prisma-question-comments-repository';
-import { PrismaAnswersRepository } from './repositories/prisma-answers-repository';
-import { PrismaAnswerAttachmentsRepository } from './repositories/prisma-answer-attachments-repository';
-import { PrismaAnswerCommentsRepository } from './repositories/prisma-answer-comments-repository';
 import { QuestionsRepository } from '@/domain/forum/application/repositories/questions-repository';
 import { StudentsRepository } from '@/domain/forum/application/repositories/students-repository';
-import { PrismaStudentsRepository } from './repositories/prisma-students-repository';
 import { AnswersRepository } from '@/domain/forum/application/repositories/answers-repository';
 import { QuestionAttachmentsRepository } from '@/domain/forum/application/repositories/question-attachments-repository';
 import { QuestionCommentsRepository } from '@/domain/forum/application/repositories/question-comments-repository';
 import { AnswerAttachmentsRepository } from '@/domain/forum/application/repositories/answer-attachments-repository';
 import { AnswerCommentsRepository } from '@/domain/forum/application/repositories/answer-comments-repository';
 import { AttachmentsRepository } from '@/domain/forum/application/repositories/attachments-repository';
-import { PrismaAttachmentsRepository } from './repositories/prisma-attachments-repository';
-import { PrismaNotificationsRepository } from './repositories/prisma-notications-repository';
 import { NotificationsRepository } from '@/domain/notification/application/repositories/notifications-repository';
 import { CacheModule } from '../cache/cache.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { EnvModule } from '../env/env.module';
+import { EnvService } from '../env/env.service';
+import { QuestionEntity } from './entities/question.entity';
+import { UserEntity } from './entities/user.entity';
+import { AttachmentEntity } from './entities/attachment.entity';
+import { CommentEntity } from './entities/comment.entity';
+import { NotificationEntity } from './entities/notification.entity';
+import { AnswerEntity } from './entities/answer.entity';
+import { TypeORMQuestionsRepository } from './repositories/typeorm-questions-repository';
+import { TypeORMStudentsRepository } from './repositories/typeorm-students-repository';
+import { TypeORMQuestionAttachmentsRepository } from './repositories/typeorm-question-attachments-repository';
+import { TypeORMQuestionCommentsRepository } from './repositories/typeorm-question-comments-repository';
+import { TypeORMAnswersRepository } from './repositories/typeorm-answers-repository';
+import { TypeORMAnswerAttachmentsRepository } from './repositories/typeorm-answer-attachments-repository';
+import { TypeORmAnswerCommentsRepository } from './repositories/typeorm-answer-comments-repository';
+import { TypeORMAttachmentsRepository } from './repositories/typeorm-attachments-repository';
+import { TypeORMNotificationsRepository } from './repositories/typeorm-notications-repository';
 
 @Module({
-  imports: [CacheModule],
+  imports: [
+    CacheModule,
+    TypeOrmModule.forRootAsync({
+      imports: [EnvModule],
+      inject: [EnvService],
+      useFactory: (env: EnvService) => ({
+        type: 'postgres',
+        url: env.get('DATABASE_URL'),
+        entities: [
+          QuestionEntity,
+          UserEntity,
+          AttachmentEntity,
+          CommentEntity,
+          NotificationEntity,
+          AnswerEntity,
+        ],
+        migrations: [__dirname + '/migrations/*.{ts,js}'],
+        synchronize: false,
+      }),
+    }),
+    TypeOrmModule.forFeature([
+      QuestionEntity,
+      UserEntity,
+      AttachmentEntity,
+      CommentEntity,
+      NotificationEntity,
+      AnswerEntity,
+    ]),
+  ],
   providers: [
-    PrismaService,
     {
       provide: QuestionsRepository,
-      useClass: PrismaQuestionsRepository,
+      useClass: TypeORMQuestionsRepository,
     },
     {
       provide: StudentsRepository,
-      useClass: PrismaStudentsRepository,
+      useClass: TypeORMStudentsRepository,
     },
     {
       provide: QuestionAttachmentsRepository,
-      useClass: PrismaQuestionAttachmentsRepository,
+      useClass: TypeORMQuestionAttachmentsRepository,
     },
     {
       provide: QuestionCommentsRepository,
-      useClass: PrismaQuestionCommentsRepository,
+      useClass: TypeORMQuestionCommentsRepository,
     },
-    { provide: AnswersRepository, useClass: PrismaAnswersRepository },
+    { provide: AnswersRepository, useClass: TypeORMAnswersRepository },
     {
       provide: AnswerAttachmentsRepository,
-      useClass: PrismaAnswerAttachmentsRepository,
+      useClass: TypeORMAnswerAttachmentsRepository,
     },
     {
       provide: AnswerCommentsRepository,
-      useClass: PrismaAnswerCommentsRepository,
+      useClass: TypeORmAnswerCommentsRepository,
     },
     {
       provide: AttachmentsRepository,
-      useClass: PrismaAttachmentsRepository,
+      useClass: TypeORMAttachmentsRepository,
     },
     {
       provide: NotificationsRepository,
-      useClass: PrismaNotificationsRepository,
+      useClass: TypeORMNotificationsRepository,
     },
   ],
   exports: [
-    PrismaService,
     QuestionsRepository,
     StudentsRepository,
     QuestionAttachmentsRepository,
